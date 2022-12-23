@@ -26,7 +26,7 @@ import (
 	"github.com/nats-io/nats.go"
 )
 
-var memory Cache
+var memory *Cache
 
 // NOTE: Can test with demo servers.
 // nats-sub -s demo.nats.io <subject>
@@ -105,24 +105,44 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	memory := NewCashe()
+	// Create JetStream Context
+	js, err := nc.JetStream(nats.PublishAsyncMaxPending(256))
+	if err != nil {
+		log.Fatal("failed creation", err)
+	}
+	js.AddStream(&nats.StreamConfig{
+		Name: args[0],
+	})
+	defer js.DeleteStream(args[0])
+	LaunchPublisher(js, args[0])
+
+	memory = NewCashe()
 	subj, i := args[0], 0
-	nc.Subscribe(subj, func(msg *nats.Msg) {
+	_, err = js.Subscribe(subj, func(msg *nats.Msg) {
+		log.Printf("message received on %s\n", subj)
 		i += 1
 		var m message
 		err := json.Unmarshal(msg.Data, &m)
+
 		if err != nil {
 			fmt.Println(err)
 			//fmt.Println(string(msg.Data))
 		} else {
 			memory.Set(strconv.Itoa(i), m)
-			fmt.Println(memory.Get(strconv.Itoa(i)))
-			fmt.Println(len(memory.storage))
 		}
 		//printMsg(msg, i)
 		//fmt.Println(m)
 	})
-	nc.Flush()
+	if err != nil {
+		log.Fatal(err)
+	}
+	s := newServer()
+	log.Println("server created")
+	go s.ListenAndServe()
+	log.Println("server launched")
+	go ConnectToDB()
+
+	//nc.Flush()
 
 	if err := nc.LastError(); err != nil {
 		log.Fatal(err)
@@ -132,10 +152,7 @@ func main() {
 	if *showTime {
 		log.SetFlags(log.LstdFlags)
 	}
-	ConnectToDB()
-	s := newServer()
-	go s.ListenAndServe()
-	LaunchPublisher(nc)
+
 	runtime.Goexit()
 }
 
