@@ -1,9 +1,9 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
+	"text/template"
 	"time"
 )
 
@@ -19,15 +19,26 @@ func newServer() *http.Server {
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	log.Println("file request")
+	err := r.ParseForm()
+	if err != nil {
+		log.Println(err)
+	}
 
-	id := r.URL.Query()["id"][0]
+	id := r.Form.Get("id")
+
+	t, err := template.New("index.html").ParseFiles("index.html")
+
 	m, err := memory.Get(id)
 	if err != nil {
 		log.Println(err, id)
-		w.Write([]byte("message not found"))
+		err = t.Execute(w, "message not found")
+
 	} else {
-		rval, _ := json.Marshal(m)
-		w.Write(rval)
+
+		err = t.Execute(w, m)
+	}
+	if err != nil {
+		log.Println(err)
 	}
 	log.Println("file sent")
 }

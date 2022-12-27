@@ -19,12 +19,12 @@ func NewCashe() *Cache {
 }
 
 func (c *Cache) Set(key string, value message) error {
-	log.Println("adding message to cache")
+	log.Println("adding message to cache", key)
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	_, exists := c.storage[key]
 	if exists {
-		return errors.New("message exists")
+		return errors.New("message exists in cache")
 	}
 	c.storage[key] = value
 	return nil

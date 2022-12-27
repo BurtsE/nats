@@ -20,7 +20,6 @@ import (
 	"log"
 	"os"
 	"runtime"
-	"strconv"
 	"time"
 
 	"github.com/nats-io/nats.go"
@@ -100,6 +99,16 @@ func main() {
 		opts = append(opts, opt)
 	}
 
+	memory = NewCashe()
+
+	db := ConnectTODB()
+	messages, err := recoverFromDB(db)
+	if err != nil {
+		log.Println("error while recovering from database: ", err)
+	}
+	for _, m := range messages {
+		memory.Set(m.Order_uid, m)
+	}
 	// Connect to NATS
 	nc, err := nats.Connect(*urls, opts...)
 	if err != nil {
@@ -108,15 +117,15 @@ func main() {
 	// Create JetStream Context
 	js, err := nc.JetStream(nats.PublishAsyncMaxPending(256))
 	if err != nil {
-		log.Fatal("failed creation", err)
+		log.Fatal("failed stream creation", err)
 	}
 	js.AddStream(&nats.StreamConfig{
 		Name: args[0],
 	})
 	defer js.DeleteStream(args[0])
+
 	LaunchPublisher(js, args[0])
 
-	memory = NewCashe()
 	subj, i := args[0], 0
 	_, err = js.Subscribe(subj, func(msg *nats.Msg) {
 		log.Printf("message received on %s\n", subj)
@@ -126,23 +135,26 @@ func main() {
 
 		if err != nil {
 			fmt.Println(err)
-			//fmt.Println(string(msg.Data))
 		} else {
-			memory.Set(strconv.Itoa(i), m)
+			err = memory.Set(m.Order_uid, m)
+			if err != nil {
+				log.Println(err)
+			}
+			addToDB(m, db)
+
 		}
 		//printMsg(msg, i)
-		//fmt.Println(m)
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
+	nc.Flush()
 	s := newServer()
 	log.Println("server created")
-	go s.ListenAndServe()
+	s.ListenAndServe()
 	log.Println("server launched")
-	go ConnectToDB()
 
-	//nc.Flush()
+	nc.Flush()
 
 	if err := nc.LastError(); err != nil {
 		log.Fatal(err)
