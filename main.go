@@ -140,7 +140,6 @@ func main() {
 	s := newServer()
 	log.Println("server created")
 	s.ListenAndServe()
-	log.Println("server launched")
 
 	if err := nc.LastError(); err != nil {
 		log.Fatal(err)
