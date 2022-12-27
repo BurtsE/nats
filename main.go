@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"runtime"
 	"time"
 
 	"github.com/nats-io/nats.go"
@@ -38,10 +37,6 @@ func usage() {
 func showUsageAndExit(exitcode int) {
 	usage()
 	os.Exit(exitcode)
-}
-
-func printMsg(m *nats.Msg, i int) {
-	log.Printf("[#%d] Received on [%s]: '%s'", i, m.Subject, string(m.Data))
 }
 
 func main() {
@@ -102,6 +97,7 @@ func main() {
 	memory = NewCashe()
 
 	db := ConnectTODB()
+	defer db.Close()
 	messages, err := recoverFromDB(db)
 	if err != nil {
 		log.Println("error while recovering from database: ", err)
@@ -119,12 +115,6 @@ func main() {
 	if err != nil {
 		log.Fatal("failed stream creation", err)
 	}
-	js.AddStream(&nats.StreamConfig{
-		Name: args[0],
-	})
-	defer js.DeleteStream(args[0])
-
-	LaunchPublisher(js, args[0])
 
 	subj, i := args[0], 0
 	_, err = js.Subscribe(subj, func(msg *nats.Msg) {
@@ -143,18 +133,14 @@ func main() {
 			addToDB(m, db)
 
 		}
-		//printMsg(msg, i)
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	nc.Flush()
 	s := newServer()
 	log.Println("server created")
 	s.ListenAndServe()
 	log.Println("server launched")
-
-	nc.Flush()
 
 	if err := nc.LastError(); err != nil {
 		log.Fatal(err)
@@ -165,7 +151,7 @@ func main() {
 		log.SetFlags(log.LstdFlags)
 	}
 
-	runtime.Goexit()
+	//runtime.Goexit()
 }
 
 func setupConnOptions(opts []nats.Option) []nats.Option {
