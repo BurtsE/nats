@@ -51,20 +51,28 @@ func ConnectTODB() *sql.DB {
 }
 
 func addToDB(m message, db *sql.DB) error {
-
+	log.Println("adding to database...")
 	if orderInDB(m.Order_uid, db) {
 		return errors.New("already exists")
 	}
-
+	log.Println("1...")
 	insert_order(m, db)
+
+	log.Println("2...")
 	insert_items(m, db)
+
+	log.Println("3...")
 	insert_delivery(m, db)
+
+	log.Println("4...")
 	insert_payment(m, db)
+	log.Println("finished")
 	return nil
 }
 
 func orderInDB(id string, db *sql.DB) bool {
 	rows, err := db.Query(fmt.Sprintf("select order_uid from orders where order_uid='%s'", id))
+	defer rows.Close()
 	if err != nil {
 		log.Println(err)
 		return true
@@ -78,6 +86,7 @@ func orderInDB(id string, db *sql.DB) bool {
 
 func itemInDB(id int, db *sql.DB) bool {
 	rows, err := db.Query(fmt.Sprintf("select chrt_id from items where chrt_id='%d'", id))
+	defer rows.Close()
 	if err != nil {
 		log.Println(err)
 	}
@@ -168,6 +177,7 @@ func recoverFromDB(db *sql.DB) ([]message, error) {
 
 	var data []message
 	rows, err := db.Query("SELECT * FROM orders;")
+	defer rows.Close()
 	if err != nil {
 		return data, err
 	}
@@ -181,6 +191,7 @@ func recoverFromDB(db *sql.DB) ([]message, error) {
 		}
 		payment, err := db.Query("SELECT transaction, request_id, currency, provider, amount, payment_dt,"+
 			"bank, delivery_cost, goods_total, custom_fee FROM payments WHERE order_id=$1;", m.Order_uid)
+			defer payment.Close()
 		if err != nil {
 			return data, err
 		}
@@ -193,6 +204,7 @@ func recoverFromDB(db *sql.DB) ([]message, error) {
 		}
 
 		delivery, err := db.Query("SELECT name, phone, zip, city, address, region, email FROM delivery WHERE order_id=$1;", m.Order_uid)
+		defer delivery.Close()
 		if err != nil {
 			log.Println(err)
 		}
@@ -214,6 +226,7 @@ func recoverFromDB(db *sql.DB) ([]message, error) {
 		}
 		var sql string = string(sqldata)
 		items, err := db.Query(sql, m.Order_uid)
+		defer items.Close()
 		if err != nil {
 			return data, err
 		}
