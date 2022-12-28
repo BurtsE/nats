@@ -14,11 +14,11 @@ import (
 )
 
 type config struct {
-	Host     string `json:host`
-	Port     int    `json:port`
-	User     string `json:user`
-	Password string `json:password`
-	Dbname   string `json:dbname`
+	Host     string `json:"host"`
+	Port     int    `json:"port"`
+	User     string `json:"user"`
+	Password string `json:"password"`
+	Dbname   string `json:"dbname"`
 }
 
 var database *sql.DB
@@ -27,6 +27,10 @@ func GetDatabase() *sql.DB {
 	return database
 }
 func ConnectTODB() {
+	if database != nil {
+		log.Println("already connected to database")
+		return
+	}
 	log.Println("connecting to db...")
 	var conf config
 	file, err := os.Open("../static/config.json")

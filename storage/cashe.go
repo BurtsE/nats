@@ -15,14 +15,12 @@ type cache struct {
 var memory cache
 
 func GetCache() *cache {
-	log.Println(memory.storage == nil)
 	if memory.storage == nil {
 		memory = cache{
 			storage: make(map[string]service.Message),
 			mutex:   sync.RWMutex{},
 		}
 	}
-	log.Println(memory.mutex)
 	return &memory
 }
 

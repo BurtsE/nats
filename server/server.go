@@ -31,7 +31,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 	memory := storage.GetCache()
-	log.Printf("messages IN MEMORY: \n", memory)
+
 	m, err := memory.Get(id)
 	if err != nil {
 		log.Println(err, id)
