@@ -22,9 +22,6 @@ import (
 func main() {
 
 	server.Createsub("nats-sub")
-	//log.Printf("subscribed as %s to %s to %s\n", sub)
-	//memory := storage.GetCache()
-	//log.Printf("mmemory init\n", memory)
 	storage.ConnectTODB()
 	db := storage.GetDatabase()
 	defer db.Close()
@@ -39,5 +36,4 @@ func main() {
 	if err != nil {
 		log.Println(err)
 	}
-	log.Println("end?")
 }
