@@ -13,9 +13,7 @@ import (
 func CreateStansub(subj string) {
 	log.Println("Creating subscriber")
 	sc, _ := stan.Connect("test-cluster", "clientid")
-	log.Println("Creating subscriber")
 	memory := storage.GetCache()
-	log.Println("Creating subscriber")
 	_, err := sc.Subscribe(subj, func(msg *stan.Msg) {
 		log.Printf("message received on %s\n", subj)
 
