@@ -18,7 +18,7 @@ func TestCreate(t *testing.T) {
 		key := strconv.Itoa(i)
 		val, ok := m.storage[key]
 		if !ok || val.Order_uid != key {
-			t.Errorf("cache changed or lost")
+			t.Error("cache changed or lost")
 		}
 	}
 }
@@ -36,14 +36,14 @@ func TestSet(t *testing.T) {
 	for key, value := range result {
 		err := c.Set(key, value)
 		if err == nil {
-			t.Errorf("existing value was reset")
+			t.Error("existing value was reset")
 		}
 	}
 	for i := 0; i < 5; i++ {
 		key := strconv.Itoa(i)
 		val, ok := c.storage[key]
 		if !ok || val.Order_uid != result[key].Order_uid {
-			t.Errorf("cache changed or lost")
+			t.Error("cache changed or lost")
 		}
 	}
 
@@ -61,7 +61,7 @@ func TestGet(t *testing.T) {
 		key := strconv.Itoa(i)
 		val, err := c.Get(key)
 		if err != nil || val.Order_uid != result[key].Order_uid {
-			t.Errorf("cache changed or lost")
+			t.Error("cache changed or lost")
 		}
 	}
 }

@@ -157,7 +157,7 @@ func RecoverFromDB() error {
 }
 
 func orderInDB(id string) bool {
-	rows, err := database.Query(fmt.Sprintf("select order_uid from orders where order_uid='%s'", id))
+	rows, err := database.Query(fmt.Sprintf("select order_uid from orders where order_uid='%s';", id))
 	defer rows.Close()
 	if err != nil {
 		log.Println(err)
@@ -171,7 +171,7 @@ func orderInDB(id string) bool {
 }
 
 func itemInDB(id int) bool {
-	rows, err := database.Query(fmt.Sprintf("select chrt_id from items where chrt_id='%d'", id))
+	rows, err := database.Query(fmt.Sprintf("select chrt_id from items where chrt_id='%d';", id))
 	defer rows.Close()
 	if err != nil {
 		log.Println(err)
@@ -246,7 +246,7 @@ func insert_delivery(m service.Message) {
 
 func insert_payment(m service.Message) {
 	log.Println("insert payment")
-	sqlfile, err := os.Open("s../ql/insert_payment.sql")
+	sqlfile, err := os.Open("../sql/insert_payment.sql")
 	defer sqlfile.Close()
 	log.Println(err)
 	sqldata, _ := ioutil.ReadAll(sqlfile)
