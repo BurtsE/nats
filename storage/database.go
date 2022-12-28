@@ -65,16 +65,13 @@ func AddToDB(m service.Message) error {
 	if orderInDB(m.Order_uid) {
 		return errors.New("already exists")
 	}
-	log.Println("1...")
 	insert_order(m)
 
-	log.Println("2...")
 	insert_items(m)
 
-	log.Println("3...")
+
 	insert_delivery(m)
 
-	log.Println("4...")
 	insert_payment(m)
 	log.Println("finished")
 	return nil
