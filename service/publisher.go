@@ -60,31 +60,4 @@ type Item struct {
 	Status       int    `json: "status"`
 }
 
-func LaunchPublisher(js nats.JetStreamContext, consumer string) {
-	go func() {
-		log.Println("Publishing launched")
-		log.Println("stream added")
-		for false {
-			file, _ := os.Open("model.json")
-			data, _ := ioutil.ReadAll(file)
-			file.Close()
-			js.PublishAsync(consumer, data)
-			file, _ = os.Open("model2.json")
-			data, _ = ioutil.ReadAll(file)
-			file.Close()
-			js.PublishAsync(consumer, data)
-			file, _ = os.Open("model3.json")
-			data, _ = ioutil.ReadAll(file)
-			file.Close()
-			js.PublishAsync(consumer, data)
 
-			log.Println("Publishing finished")
-			select {
-			case <-js.PublishAsyncComplete():
-			case <-time.After(5 * time.Second):
-				fmt.Println("Did not resolve in time")
-			}
-			time.Sleep(5 * time.Second)
-		}
-	}()
-}
