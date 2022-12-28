@@ -21,7 +21,7 @@ import (
 
 func main() {
 
-	server.Createsub("nats-sub")
+	server.CreateStansub("stan-sub")
 	storage.ConnectTODB()
 	db := storage.GetDatabase()
 	defer db.Close()
