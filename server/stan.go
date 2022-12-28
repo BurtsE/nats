@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"main/service"
 	"main/storage"
@@ -21,7 +20,7 @@ func CreateStansub(subj string) {
 		err := json.Unmarshal(msg.Data, &m)
 
 		if err != nil {
-			fmt.Println(err)
+			log.Println("invalid message")
 		} else {
 			err = memory.Set(m.Order_uid, m)
 			if err != nil {
